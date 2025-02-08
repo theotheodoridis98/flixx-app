@@ -2,12 +2,22 @@ const global = {
   currentPage: window.location.pathname,
 };
 
-// Fetch data from TMDB API with error handling
+//Function to show spinner while the data are being fetched
+function showSpinner() {
+  document.querySelector('.spinner').classList.add('show');
+}
+//Function to hide spinner
+function hideSpinner() {
+  document.querySelector('.spinner').classList.remove('show');
+}
+
+// Fetch data from TMDB API
 async function fetchAPIData(endpoint) {
   const API_URL = 'https://api.themoviedb.org/3/';
   const API_KEY = 'ae4fecc767d53ab9d4986a4738c0ae24';
 
   try {
+    showSpinner();
     const response = await fetch(
       `${API_URL}${endpoint}?api_key=${API_KEY}&language=en-US`
     );
@@ -17,10 +27,11 @@ async function fetchAPIData(endpoint) {
     }
 
     const data = await response.json();
+    hideSpinner();
     return data;
   } catch (error) {
     console.error('Fetch API Error:', error);
-    return { results: [] }; // Prevent crashes
+    return { results: [] }; // Prevent crashes!
   }
 }
 
@@ -73,6 +84,55 @@ async function displayPopularMovies() {
   });
 }
 
+// Function to display popular TV Shows
+async function displayPopularSeries() {
+  const { results: popularSeries } = await fetchAPIData('tv/popular');
+
+  if (!popularSeries || popularSeries.length === 0) {
+    console.warn('No popular TV series found.');
+    return;
+  }
+
+  const seriesContainer = document.querySelector('#popular-shows');
+  if (!seriesContainer) {
+    console.error('Error: #popular-shows not found in the document.');
+    return;
+  }
+
+  seriesContainer.innerHTML = ''; // Clear previous content
+
+  popularSeries.forEach((show) => {
+    const div = document.createElement('div');
+    div.classList.add('card');
+    div.innerHTML = `
+          <a href="tv-details.html?id=${show.id}">
+            ${
+              show.poster_path
+                ? `<img
+              src="https://image.tmdb.org/t/p/w500${show.poster_path}"
+              class="card-img-top"
+              alt="${show.name}"
+            />`
+                : `<img
+              src="../images/no-image.jpg"
+              class="card-img-top"
+              alt="${show.name}"
+            />`
+            } 
+          </a>
+          <div class="card-body">
+            <h5 class="card-title">${show.name}</h5>
+            <p class="card-text">
+              <small class="text-muted">${
+                show.first_air_date || 'Unknown First Air Date'
+              }</small>
+            </p>
+          </div>`;
+
+    seriesContainer.appendChild(div);
+  });
+}
+
 // Highlight active navigation link
 function highlightActiveLink() {
   const links = document.querySelectorAll('.nav-link');
@@ -94,6 +154,7 @@ function init() {
       break;
     case '/shows.html':
       console.log('Shows');
+      displayPopularSeries();
       break;
     case '/movie-details.html':
       console.log('Movie Details');
