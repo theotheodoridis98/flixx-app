@@ -38,10 +38,10 @@ To fetch data from TMDB, ensure you have a valid API key:
 
 ## 📸 Screenshots
 🖼 **Home Page:**
-![Home Page](home.png)
+![Home Page](images/home.png)
 
 📺 **TV Shows Page:**
-![TV Shows Page](tv-shows.png)
+![TV Shows Page](images/tv-shows.png)
 
 ## 📜 License
 🛑 This project is for educational purposes only and is not intended for commercial use.
