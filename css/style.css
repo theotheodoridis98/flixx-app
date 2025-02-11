@@ -197,6 +197,7 @@ section h2 {
 .swiper-slide {
   text-align: center;
   font-size: 18px;
+  border-radius: 1%;
   background: var(--color-primary);
   display: flex;
   flex-direction: column;
