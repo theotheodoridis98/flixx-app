@@ -1,5 +1,15 @@
 const global = {
   currentPage: window.location.pathname,
+  search: {
+    term: '',
+    type: '',
+    page: 1,
+    totalPages: 1,
+  },
+  api: {
+    apiKey: 'ae4fecc767d53ab9d4986a4738c0ae24',
+    apiURL: 'https://api.themoviedb.org/3/',
+  },
 };
 
 //Function to show spinner while the data are being fetched
@@ -13,13 +23,37 @@ function hideSpinner() {
 
 // Fetch data from TMDB API
 async function fetchAPIData(endpoint) {
-  const API_URL = 'https://api.themoviedb.org/3/';
-  const API_KEY = 'ae4fecc767d53ab9d4986a4738c0ae24';
+  const API_URL = global.api.apiURL;
+  const API_KEY = global.api.apiKey;
 
   try {
     showSpinner();
     const response = await fetch(
       `${API_URL}${endpoint}?api_key=${API_KEY}&language=en-US`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    hideSpinner();
+    return data;
+  } catch (error) {
+    console.error('Fetch API Error:', error);
+    return { results: [] }; // Prevent crashes!
+  }
+}
+
+// Make request to search API
+async function searchAPIData() {
+  const API_URL = global.api.apiURL;
+  const API_KEY = global.api.apiKey;
+
+  try {
+    showSpinner();
+    const response = await fetch(
+      `${API_URL}search/${global.search.type}?api_key=${API_KEY}&language=en-US&query=${global.search.term}&page=${global.search.page}`
     );
 
     if (!response.ok) {
@@ -273,6 +307,25 @@ async function displayShowDetails() {
   document.querySelector('#show-details').appendChild(div);
 }
 
+// Search Movies / Shows
+async function search() {
+  const queryString = window.location.search; // Get the query string from the URL
+  console.log(queryString);
+  const urlParams = new URLSearchParams(queryString);
+  console.log(urlParams);
+  console.log(urlParams.get('type'));
+
+  global.search.type = urlParams.get('type');
+  global.search.term = urlParams.get('search-term');
+
+  if (global.search.term !== '' && global.search.term !== null) {
+    // @todo - make request and display search results
+    const results = await searchAPIData();
+    console.log(results);
+  } else {
+    showAlert('Please enter a search term!');
+  }
+}
 //Display Slider Movies
 async function displaySlider() {
   const { results } = await fetchAPIData('movie/now_playing');
@@ -351,6 +404,16 @@ function highlightActiveLink() {
   });
 }
 
+// Show Alert
+function showAlert(message, className) {
+  const alertEl = document.createElement('div');
+  alertEl.classList.add('alert', className);
+  alertEl.appendChild(document.createTextNode(message));
+  document.querySelector('#alert').appendChild(alertEl);
+
+  setTimeout(() => alertEl.remove(), 3000);
+}
+
 function addCommasToNumber(number) {
   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
@@ -378,6 +441,7 @@ function init() {
       break;
     case '/search.html':
       console.log('Search');
+      search();
       break;
   }
   highlightActiveLink();
